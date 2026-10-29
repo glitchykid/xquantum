@@ -1,0 +1,25 @@
+{
+  "status": "abstain",
+  "clinically_validated": false,
+  "reason": "Research model requires specialist review",
+  "model_id": "1ffd2d866bbd51d56ed8d44a5b248568727c346bb641936a7de47c5665928da7",
+  "mode": "bootstrap",
+  "quality_issues": [],
+  "research_scores": [
+    {
+      "label": "alopecia_areata",
+      "score": 0.9962300558349629
+    },
+    {
+      "label": "tinea_capitis",
+      "score": 0.0037699441650370933
+    }
+  ],
+  "clinical_context_used_by_model": false,
+  "observations_for_specialist_review": [],
+  "limitations": [
+    "Uncalibrated research scores are not diagnostic probabilities",
+    "No validated scalp detector or out-of-distribution detector",
+    "No treatment recommendations; specialist review always required"
+  ]
+}

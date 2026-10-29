@@ -1,0 +1,324 @@
+{
+  "$defs": {
+    "Labs": {
+      "additionalProperties": false,
+      "description": "Optional results in named units; no automated deficiency interpretation.",
+      "properties": {
+        "ferritin_ng_ml": {
+          "anyOf": [
+            {
+              "maximum": 100000,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ferritin Ng Ml"
+        },
+        "hemoglobin_g_dl": {
+          "anyOf": [
+            {
+              "maximum": 30,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hemoglobin G Dl"
+        },
+        "tsh_miu_l": {
+          "anyOf": [
+            {
+              "maximum": 1000,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tsh Miu L"
+        },
+        "vitamin_d_ng_ml": {
+          "anyOf": [
+            {
+              "maximum": 1000,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Vitamin D Ng Ml"
+        },
+        "zinc_ug_dl": {
+          "anyOf": [
+            {
+              "maximum": 10000,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Zinc Ug Dl"
+        }
+      },
+      "title": "Labs",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Pseudonymous features only; absent is distinct from a negative finding.",
+  "properties": {
+    "age_years": {
+      "anyOf": [
+        {
+          "maximum": 120,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Age Years"
+    },
+    "duration_months": {
+      "anyOf": [
+        {
+          "maximum": 1440,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Duration Months"
+    },
+    "sex_at_birth": {
+      "default": "unknown",
+      "enum": [
+        "female",
+        "male",
+        "intersex",
+        "unknown"
+      ],
+      "title": "Sex At Birth",
+      "type": "string"
+    },
+    "skin_phototype": {
+      "anyOf": [
+        {
+          "maximum": 6,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Skin Phototype"
+    },
+    "itching": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Itching"
+    },
+    "pain": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Pain"
+    },
+    "scaling": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Scaling"
+    },
+    "pustules": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Pustules"
+    },
+    "sudden_shedding": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Sudden Shedding"
+    },
+    "family_history": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Family History"
+    },
+    "recent_illness": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Recent Illness"
+    },
+    "postpartum": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Postpartum"
+    },
+    "traction_exposure": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Traction Exposure"
+    },
+    "loss_of_follicular_openings": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Loss Of Follicular Openings"
+    },
+    "miniaturization": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Miniaturization"
+    },
+    "yellow_dots": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Yellow Dots"
+    },
+    "black_dots": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Black Dots"
+    },
+    "broken_hairs": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Broken Hairs"
+    },
+    "perifollicular_erythema": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Perifollicular Erythema"
+    },
+    "labs": {
+      "$ref": "#/$defs/Labs"
+    }
+  },
+  "title": "ClinicalRecord",
+  "type": "object"
+}

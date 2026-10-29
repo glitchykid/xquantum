@@ -1,0 +1,10 @@
+{
+  "age_years": 35,
+  "duration_months": 6,
+  "sex_at_birth": "unknown",
+  "itching": true,
+  "scaling": true,
+  "pain": false,
+  "family_history": null,
+  "labs": {"ferritin_ng_ml": null, "tsh_miu_l": null}
+}

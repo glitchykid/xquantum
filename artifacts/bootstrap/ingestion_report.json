@@ -1,0 +1,22 @@
+{
+  "downloaded": 10,
+  "errors": [],
+  "class_counts": {
+    "alopecia_areata": 5,
+    "tinea_capitis": 5
+  },
+  "label_quality": "source_only",
+  "patient_identity_known": false,
+  "evaluation_permitted": false,
+  "initial_downloads": 12,
+  "excluded_after_review": [
+    {
+      "title": "File:Teigne.png",
+      "reason": "Nonhuman subject (cat); excluded after visual and source-description review"
+    },
+    {
+      "title": "File:Calva en cabeza.png",
+      "reason": "Ambiguous source description; no disease-specific caption"
+    }
+  ]
+}

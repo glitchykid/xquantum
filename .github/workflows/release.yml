@@ -1,0 +1,29 @@
+name: Release research baseline
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-python@v7.1.0
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements-lock.txt
+      - run: python -m pip install --no-deps -e .
+      - run: ruff check .
+      - run: ruff format --check src tests
+      - run: pytest
+      - run: python -m build
+      - run: python -m pip check
+      - name: Publish checked research packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "$GITHUB_REF_NAME" dist/* --verify-tag
+          --title "XQuantum $GITHUB_REF_NAME — research baseline"
+          --notes-file docs/RELEASE_NOTES.md

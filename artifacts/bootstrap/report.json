@@ -1,0 +1,236 @@
+{
+  "schema_version": 1,
+  "feature_version": "rgb-gradient-grid-v1",
+  "created_at": "2026-10-29T22:52:12.213902+00:00",
+  "seed": 42,
+  "epochs": 50,
+  "mode": "bootstrap",
+  "multimodal": false,
+  "architecture": "color-gradient-grid + standardized SGD logistic OvR baseline",
+  "clinically_validated": false,
+  "training_samples": 10,
+  "training_class_counts": {
+    "alopecia_areata": 5,
+    "tinea_capitis": 5
+  },
+  "classes": [
+    "alopecia_areata",
+    "tinea_capitis"
+  ],
+  "training_history": [
+    {
+      "epoch": 1,
+      "training_log_loss": 0.14431442689377857
+    },
+    {
+      "epoch": 2,
+      "training_log_loss": 0.07434733150461084
+    },
+    {
+      "epoch": 3,
+      "training_log_loss": 0.053841953901583584
+    },
+    {
+      "epoch": 4,
+      "training_log_loss": 0.0427096747434797
+    },
+    {
+      "epoch": 5,
+      "training_log_loss": 0.03558630488117777
+    },
+    {
+      "epoch": 6,
+      "training_log_loss": 0.030586173546371324
+    },
+    {
+      "epoch": 7,
+      "training_log_loss": 0.02687589942303627
+    },
+    {
+      "epoch": 8,
+      "training_log_loss": 0.02400671966230288
+    },
+    {
+      "epoch": 9,
+      "training_log_loss": 0.02171920320021372
+    },
+    {
+      "epoch": 10,
+      "training_log_loss": 0.019841912922972313
+    },
+    {
+      "epoch": 11,
+      "training_log_loss": 0.018277754278874406
+    },
+    {
+      "epoch": 12,
+      "training_log_loss": 0.01695205898518466
+    },
+    {
+      "epoch": 13,
+      "training_log_loss": 0.01581187034683141
+    },
+    {
+      "epoch": 14,
+      "training_log_loss": 0.014822797910276343
+    },
+    {
+      "epoch": 15,
+      "training_log_loss": 0.01395595290466727
+    },
+    {
+      "epoch": 16,
+      "training_log_loss": 0.013188914259564427
+    },
+    {
+      "epoch": 17,
+      "training_log_loss": 0.012506727306119913
+    },
+    {
+      "epoch": 18,
+      "training_log_loss": 0.011895300210209842
+    },
+    {
+      "epoch": 19,
+      "training_log_loss": 0.01134421227111984
+    },
+    {
+      "epoch": 20,
+      "training_log_loss": 0.010844839225410255
+    },
+    {
+      "epoch": 21,
+      "training_log_loss": 0.010390323909592443
+    },
+    {
+      "epoch": 22,
+      "training_log_loss": 0.009974974477372327
+    },
+    {
+      "epoch": 23,
+      "training_log_loss": 0.009593787682476356
+    },
+    {
+      "epoch": 24,
+      "training_log_loss": 0.00924270839208267
+    },
+    {
+      "epoch": 25,
+      "training_log_loss": 0.008918417928971465
+    },
+    {
+      "epoch": 26,
+      "training_log_loss": 0.008617784678343239
+    },
+    {
+      "epoch": 27,
+      "training_log_loss": 0.008338576047678892
+    },
+    {
+      "epoch": 28,
+      "training_log_loss": 0.008078442649522972
+    },
+    {
+      "epoch": 29,
+      "training_log_loss": 0.007835411881502833
+    },
+    {
+      "epoch": 30,
+      "training_log_loss": 0.007608056101109867
+    },
+    {
+      "epoch": 31,
+      "training_log_loss": 0.007394708675838318
+    },
+    {
+      "epoch": 32,
+      "training_log_loss": 0.007194282140508152
+    },
+    {
+      "epoch": 33,
+      "training_log_loss": 0.007005570059359074
+    },
+    {
+      "epoch": 34,
+      "training_log_loss": 0.006827502758818041
+    },
+    {
+      "epoch": 35,
+      "training_log_loss": 0.006659329262913634
+    },
+    {
+      "epoch": 36,
+      "training_log_loss": 0.006500199782363715
+    },
+    {
+      "epoch": 37,
+      "training_log_loss": 0.006349425965657125
+    },
+    {
+      "epoch": 38,
+      "training_log_loss": 0.0062063763192030654
+    },
+    {
+      "epoch": 39,
+      "training_log_loss": 0.006070434620201024
+    },
+    {
+      "epoch": 40,
+      "training_log_loss": 0.005941106872931688
+    },
+    {
+      "epoch": 41,
+      "training_log_loss": 0.005817977054672278
+    },
+    {
+      "epoch": 42,
+      "training_log_loss": 0.005700570832734365
+    },
+    {
+      "epoch": 43,
+      "training_log_loss": 0.005588516017762141
+    },
+    {
+      "epoch": 44,
+      "training_log_loss": 0.005481428385950374
+    },
+    {
+      "epoch": 45,
+      "training_log_loss": 0.005379032130854691
+    },
+    {
+      "epoch": 46,
+      "training_log_loss": 0.005280963458191875
+    },
+    {
+      "epoch": 47,
+      "training_log_loss": 0.005186986645875638
+    },
+    {
+      "epoch": 48,
+      "training_log_loss": 0.005096921587367357
+    },
+    {
+      "epoch": 49,
+      "training_log_loss": 0.005010421838164436
+    },
+    {
+      "epoch": 50,
+      "training_log_loss": 0.0049273464414272055
+    }
+  ],
+  "held_out_metrics": null,
+  "manifest_sha256": "f8cc20aa75c57810edb26ec816295cd49c501761ae099d991a90662811fb3277",
+  "weights_sha256": "1ffd2d866bbd51d56ed8d44a5b248568727c346bb641936a7de47c5665928da7",
+  "versions": {
+    "numpy": "2.5.4",
+    "scikit-learn": "1.9.1",
+    "Pillow": "13.0.0",
+    "pydantic": "2.14.2"
+  },
+  "limitations": [
+    "Uncalibrated research scores are not diagnostic probabilities",
+    "No validated scalp detector or out-of-distribution detector",
+    "No treatment recommendations; specialist review always required"
+  ]
+}
