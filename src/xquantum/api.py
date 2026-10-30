@@ -7,7 +7,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 
 from xquantum.model import ResearchModel
-from xquantum.schemas import AnalyzeRequest
+from xquantum.schemas import AnalyzeCaseRequest, AnalyzeRequest
 
 MAX_REQUEST_BYTES = 14_100_000
 
@@ -80,6 +80,14 @@ def create_app(model_dir: Path) -> FastAPI:
         try:
             raw = base64.b64decode(payload.image_base64, validate=True)
             return model.analyze(raw, payload.clinical)
+        except (ValueError, binascii.Error) as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.post("/v1/analyze-case")
+    def analyze_case(payload: AnalyzeCaseRequest):
+        try:
+            images = [base64.b64decode(raw, validate=True) for raw in payload.images_base64]
+            return model.analyze_case(images, payload.clinical)
         except (ValueError, binascii.Error) as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
 

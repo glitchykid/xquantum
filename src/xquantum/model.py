@@ -16,6 +16,10 @@ from xquantum.evaluation import evaluate
 from xquantum.imaging import FEATURE_VERSION, decode_image, image_features, quality_issues
 from xquantum.schemas import ClinicalRecord
 
+MAX_CASE_BYTES = 10 * 1024 * 1024
+MAX_CASE_PIXELS = 40_000_000
+MAX_CASE_VIEWS = 6
+
 
 def feature_vector(image, clinical: ClinicalRecord, multimodal: bool) -> np.ndarray:
     visual = image_features(image)
@@ -144,6 +148,9 @@ def train(
         "multimodal": multimodal,
         "architecture": "color-gradient-grid + standardized SGD logistic OvR baseline",
         "clinically_validated": False,
+        "restricted_source_count": sum(row.use_scope != "open" for row in rows),
+        "model_release_review_required": any(row.use_scope != "open" for row in rows),
+        "source_images_redistributable": all(row.image_redistribution_allowed for row in rows),
         "training_samples": int(training.sum()),
         "training_class_counts": dict(counts),
         "classes": classes.tolist(),
@@ -183,8 +190,9 @@ class ResearchModel:
         return cls(arrays, report)
 
     def analyze(self, raw: bytes, clinical: ClinicalRecord | None = None) -> dict:
-        image = decode_image(raw)
-        clinical = clinical or ClinicalRecord()
+        return self._analyze_image(decode_image(raw), clinical or ClinicalRecord())
+
+    def _analyze_image(self, image, clinical):
         issues = quality_issues(image)
         scores = []
         a = self.arrays
@@ -224,5 +232,54 @@ class ResearchModel:
             "research_scores": scores,
             "clinical_context_used_by_model": bool(self.report["multimodal"] and not issues),
             "observations_for_specialist_review": observed,
+            "limitations": self.report["limitations"],
+        }
+
+    def analyze_case(self, images: list[bytes], clinical: ClinicalRecord | None = None) -> dict:
+        """Average all case views; quality failure in any view suppresses case scores."""
+        if not 1 <= len(images) <= MAX_CASE_VIEWS:
+            raise ValueError("A case requires one to six views")
+        if sum(len(raw) for raw in images) > MAX_CASE_BYTES:
+            raise ValueError("Combined case images exceed 10 MiB")
+        clinical = clinical or ClinicalRecord()
+        views, fingerprints, pixels = [], set(), 0
+        for index, raw in enumerate(images):
+            image = decode_image(raw)
+            pixels += image.width * image.height
+            if pixels > MAX_CASE_PIXELS:
+                raise ValueError("Combined case images exceed 40 million pixels")
+            fingerprint = hashlib.sha256(image.tobytes() + str(image.size).encode()).digest()
+            if fingerprint in fingerprints:
+                raise ValueError("Duplicate views are not permitted in a case")
+            fingerprints.add(fingerprint)
+            views.append({"view_index": index, **self._analyze_image(image, clinical)})
+        rejected = any(view["quality_issues"] for view in views)
+        combined = []
+        if not rejected:
+            for label in self.arrays["classes"]:
+                score = float(
+                    np.mean(
+                        [
+                            next(r["score"] for r in view["research_scores"] if r["label"] == label)
+                            for view in views
+                        ]
+                    )
+                )
+                combined.append({"label": str(label), "score": score})
+            combined.sort(key=lambda row: row["score"], reverse=True)
+        return {
+            "status": "abstain",
+            "clinically_validated": False,
+            "reason": "One or more views failed quality checks"
+            if rejected
+            else "Research case requires specialist review",
+            "model_id": self.report["weights_sha256"],
+            "mode": self.report["mode"],
+            "aggregation": "mean_all_views",
+            "view_count": len(views),
+            "views": views,
+            "research_scores": combined,
+            "clinical_context_used_by_model": bool(self.report["multimodal"] and not rejected),
+            "observations_for_specialist_review": views[0]["observations_for_specialist_review"],
             "limitations": self.report["limitations"],
         }

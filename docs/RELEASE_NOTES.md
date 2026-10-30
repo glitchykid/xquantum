@@ -1,3 +1,13 @@
+# Development update — multi-photo cases and restricted data
+
+Date: 2026-10-30. Source update; release automation permissions are unchanged.
+
+Added `analyze-case` and `/v1/analyze-case`, shared per-view preprocessing, bounded
+case inputs, duplicate detection and all-view quality handling. Added restricted-use
+manifest fields and training report flags. Non-free provider terms were assessed;
+no paid dataset was purchased or non-free image cohort acquired. Existing public
+weights and diagnostic abstention behavior remain unchanged.
+
 # Development update — patient-level evaluation
 
 Date: 2026-10-30. Published as a source update; no new release tag or clinical claim.

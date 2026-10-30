@@ -7,7 +7,7 @@ from pathlib import Path
 
 from xquantum.dataset import audit_manifest
 from xquantum.ingest import fetch_bootstrap
-from xquantum.model import ResearchModel, train
+from xquantum.model import MAX_CASE_BYTES, MAX_CASE_VIEWS, ResearchModel, train
 from xquantum.schemas import ClinicalRecord, Sample
 
 
@@ -27,16 +27,36 @@ def parser() -> argparse.ArgumentParser:
             command.add_argument("--multimodal", action="store_true")
             command.add_argument("--epochs", type=int, default=50)
             command.add_argument("--seed", type=int, default=42)
-    analyze = commands.add_parser("analyze")
-    analyze.add_argument("--model", type=Path, required=True)
-    analyze.add_argument("--image", type=Path, required=True)
-    analyze.add_argument("--clinical", type=Path)
+    for name in ("analyze", "analyze-case"):
+        analyze = commands.add_parser(name)
+        analyze.add_argument("--model", type=Path, required=True)
+        analyze.add_argument(
+            "--image",
+            type=Path,
+            required=True,
+            **({"nargs": "+"} if name == "analyze-case" else {}),
+        )
+        analyze.add_argument("--clinical", type=Path)
     serve = commands.add_parser("serve", help="Bind a research-only API to localhost")
     serve.add_argument("--model", type=Path, required=True)
     serve.add_argument("--port", type=int, default=8000)
     schema = commands.add_parser("schema")
     schema.add_argument("--kind", choices=("clinical", "sample"), default="clinical")
     return root
+
+
+def read_case_images(paths):
+    if not 1 <= len(paths) <= MAX_CASE_VIEWS:
+        raise ValueError("A case requires one to six views")
+    images, remaining = [], MAX_CASE_BYTES
+    for path in paths:
+        with path.open("rb") as file:
+            raw = file.read(remaining + 1)
+        remaining -= len(raw)
+        if remaining < 0:
+            raise ValueError("Combined case images exceed 10 MiB")
+        images.append(raw)
+    return images
 
 
 def main(argv=None) -> int:
@@ -68,13 +88,18 @@ def main(argv=None) -> int:
                     "clinically_validated",
                 )
             }
-        elif args.command == "analyze":
+        elif args.command in {"analyze", "analyze-case"}:
             clinical = (
                 ClinicalRecord.model_validate_json(args.clinical.read_text())
                 if args.clinical
                 else ClinicalRecord()
             )
-            result = ResearchModel.load(args.model).analyze(args.image.read_bytes(), clinical)
+            images = read_case_images(args.image) if args.command == "analyze-case" else None
+            model = ResearchModel.load(args.model)
+            if args.command == "analyze-case":
+                result = model.analyze_case(images, clinical)
+            else:
+                result = model.analyze(args.image.read_bytes(), clinical)
         elif args.command == "schema":
             result = (ClinicalRecord if args.kind == "clinical" else Sample).model_json_schema()
         else:

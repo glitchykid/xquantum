@@ -386,3 +386,125 @@ def test_downloader_rejects_untrusted_hosts_redirects_and_oversized_files(monkey
     Response.url = "https://example.org/file"
     with pytest.raises(ValueError, match="redirect"):
         ingest.fetch_bytes("https://upload.wikimedia.org/file")
+
+
+def test_case_analysis_averages_views_and_preserves_single_image_results(dataset, tmp_path):
+    path, rows = dataset
+    out = tmp_path / "case-model"
+    train(path, out, bootstrap=True, epochs=2)
+    model = ResearchModel.load(out)
+    images = [(path.parent / r["image_path"]).read_bytes() for r in rows[:2]]
+    result = model.analyze_case(images)
+    assert result["status"] == "abstain"
+    assert result["view_count"] == 2
+    expected = {}
+    for raw in images:
+        for row in model.analyze(raw)["research_scores"]:
+            expected[row["label"]] = expected.get(row["label"], 0) + row["score"] / 2
+    for row in result["research_scores"]:
+        assert row["score"] == pytest.approx(expected[row["label"]])
+    assert (
+        model.analyze_case(images[:1])["research_scores"]
+        == model.analyze(images[0])["research_scores"]
+    )
+    assert result["aggregation"] == "mean_all_views"
+
+
+def test_case_quality_failure_suppresses_combined_scores(dataset, tmp_path):
+    path, rows = dataset
+    out = tmp_path / "case-model"
+    train(path, out, bootstrap=True, epochs=2)
+    good = (path.parent / rows[0]["image_path"]).read_bytes()
+    buffer = io.BytesIO()
+    Image.new("RGB", (64, 64), "white").save(buffer, "PNG")
+    result = ResearchModel.load(out).analyze_case([good, buffer.getvalue()])
+    assert result["research_scores"] == []
+    assert result["views"][1]["quality_issues"]
+    assert result["views"][0]["research_scores"]
+    assert result["clinical_context_used_by_model"] is False
+
+
+@pytest.mark.parametrize("kind", ["empty", "too_many", "duplicates", "bytes", "pixels", "invalid"])
+def test_case_rejects_invalid_inputs_and_aggregate_limits(dataset, tmp_path, kind, monkeypatch):
+    import xquantum.model as module
+
+    path, rows = dataset
+    out = tmp_path / "case-model"
+    train(path, out, bootstrap=True, epochs=2)
+    images = [(path.parent / r["image_path"]).read_bytes() for r in rows[:2]]
+    if kind == "empty":
+        images = []
+    elif kind == "too_many":
+        images *= 4
+    elif kind == "duplicates":
+        images = [images[0], images[0]]
+    elif kind == "bytes":
+        monkeypatch.setattr(module, "MAX_CASE_BYTES", 1)
+    elif kind == "pixels":
+        monkeypatch.setattr(module, "MAX_CASE_PIXELS", 1)
+    else:
+        images = [b"garbage"]
+    with pytest.raises(ValueError):
+        ResearchModel.load(out).analyze_case(images)
+
+
+def test_case_api_and_cli_share_results_and_validate_requests(dataset, tmp_path, capsys):
+    from xquantum.cli import main
+
+    path, rows = dataset
+    out = tmp_path / "case-model"
+    train(path, out, bootstrap=True, epochs=2)
+    files = [path.parent / r["image_path"] for r in rows[:2]]
+    payload = {"images_base64": [base64.b64encode(f.read_bytes()).decode() for f in files]}
+    with TestClient(create_app(out)) as client:
+        response = client.post("/v1/analyze-case", json=payload)
+        assert response.status_code == 200
+        assert response.headers["cache-control"] == "no-store"
+        assert main(["analyze-case", "--model", str(out), "--image", *map(str, files)]) == 0
+        assert json.loads(capsys.readouterr().out) == response.json()
+        for value in [[], ["garbage!"], payload["images_base64"] * 4]:
+            assert client.post("/v1/analyze-case", json={"images_base64": value}).status_code == 422
+        assert "/v1/analyze-case" in client.get("/openapi.json").json()["paths"]
+
+
+def test_restricted_sources_require_explicit_training_permission(dataset, tmp_path):
+    path, rows = dataset
+    rows[0].update(
+        license="Paid AI research agreement",
+        use_scope="licensed_research",
+        image_redistribution_allowed=False,
+    )
+    rewrite(path, rows)
+    with pytest.raises(ValueError, match="permission"):
+        audit_manifest(path, bootstrap=True)
+    rows[0]["permission_reference"] = "Institutional agreement REF-001; AI research permitted"
+    rewrite(path, rows)
+    report = train(path, tmp_path / "restricted-run", bootstrap=True, epochs=2)
+    assert report["restricted_source_count"] == 1
+    assert report["model_release_review_required"] is True
+    assert report["source_images_redistributable"] is False
+
+
+def test_unknown_license_cannot_be_silently_treated_as_open(dataset):
+    path, rows = dataset
+    rows[0]["license"] = "All rights reserved"
+    rewrite(path, rows)
+    with pytest.raises(ValueError, match="license"):
+        audit_manifest(path, bootstrap=True)
+
+
+def test_case_cli_checks_view_count_before_opening_files(tmp_path, capsys):
+    from xquantum.cli import main
+
+    assert main(["analyze-case", "--model", str(tmp_path), "--image", *(["absent.jpg"] * 7)]) == 1
+    assert "one to six" in capsys.readouterr().err
+
+
+def test_case_cli_bounds_file_reads_before_loading_model(tmp_path, capsys):
+    from xquantum.cli import main
+
+    file = tmp_path / "too_large.jpg"
+    with file.open("wb") as output:
+        output.truncate(11 * 1024 * 1024)
+    assert main(["analyze-case", "--model", str(tmp_path), "--image", str(file)]) == 1
+    assert "10 MiB" in capsys.readouterr().err

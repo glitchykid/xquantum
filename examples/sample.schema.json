@@ -386,6 +386,35 @@
       "title": "Rights Basis",
       "type": "string"
     },
+    "use_scope": {
+      "default": "open",
+      "enum": [
+        "open",
+        "noncommercial_research",
+        "licensed_research"
+      ],
+      "title": "Use Scope",
+      "type": "string"
+    },
+    "permission_reference": {
+      "anyOf": [
+        {
+          "maxLength": 1000,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Permission Reference"
+    },
+    "image_redistribution_allowed": {
+      "default": false,
+      "title": "Image Redistribution Allowed",
+      "type": "boolean"
+    },
     "split": {
       "default": "train",
       "enum": [

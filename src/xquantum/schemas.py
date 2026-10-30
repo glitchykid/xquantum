@@ -1,6 +1,6 @@
 """Explicit units, unknown values, and source provenance at the data boundary."""
 
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
 
@@ -16,6 +16,19 @@ Label = Literal[
     "folliculitis",
     "unaffected",
 ]
+
+
+OPEN_LICENSES = {
+    "Public domain",
+    "CC0",
+    "CC BY 2.0",
+    "CC BY 3.0",
+    "CC BY 4.0",
+    "CC BY-SA 2.0",
+    "CC BY-SA 2.5",
+    "CC BY-SA 3.0",
+    "CC BY-SA 4.0",
+}
 
 
 class StrictRecord(BaseModel):
@@ -78,6 +91,9 @@ class Sample(StrictRecord):
     source_url: HttpUrl
     license: str = Field(min_length=1, max_length=200)
     rights_basis: str = Field(min_length=1, max_length=2000)
+    use_scope: Literal["open", "noncommercial_research", "licensed_research"] = "open"
+    permission_reference: str | None = Field(default=None, min_length=1, max_length=1000)
+    image_redistribution_allowed: bool = False
     split: Literal["train", "validation", "test"] = "train"
     label_status: Literal["source_only", "specialist_reviewed"] = "source_only"
     reviewer_id: str | None = Field(default=None, min_length=1, max_length=100)
@@ -89,9 +105,20 @@ class Sample(StrictRecord):
     def reviewed_requires_reviewer(self):
         if self.label_status == "specialist_reviewed" and not self.reviewer_id:
             raise ValueError("specialist review requires reviewer_id")
+        if self.use_scope == "open" and self.license not in OPEN_LICENSES:
+            raise ValueError("Unknown open license; declare restricted use scope and permission")
+        if self.use_scope != "open" and not self.permission_reference:
+            raise ValueError("Restricted sources require a training permission reference")
         return self
 
 
 class AnalyzeRequest(StrictRecord):
     image_base64: str = Field(min_length=1, max_length=14_000_000)
+    clinical: ClinicalRecord = Field(default_factory=ClinicalRecord)
+
+
+class AnalyzeCaseRequest(StrictRecord):
+    images_base64: list[Annotated[str, Field(min_length=1, max_length=14_000_000)]] = Field(
+        min_length=1, max_length=6
+    )
     clinical: ClinicalRecord = Field(default_factory=ClinicalRecord)

@@ -10,7 +10,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from xquantum.imaging import MAX_BYTES, decode_image
-from xquantum.schemas import Sample
+from xquantum.schemas import OPEN_LICENSES, Sample
 
 COMMONS_API = "https://commons.wikimedia.org/w/api.php"
 USER_AGENT = "XQuantumResearch/0.1 (https://github.com/glitchykid/XQuantum)"
@@ -30,17 +30,7 @@ CATALOG = {
         "Tinea capitis.jpg",
     ],
 }
-ALLOWED_LICENSES = {
-    "Public domain",
-    "CC0",
-    "CC BY 2.0",
-    "CC BY 3.0",
-    "CC BY 4.0",
-    "CC BY-SA 2.0",
-    "CC BY-SA 2.5",
-    "CC BY-SA 3.0",
-    "CC BY-SA 4.0",
-}
+ALLOWED_LICENSES = OPEN_LICENSES
 
 
 def fetch_bytes(url: str, max_bytes: int = MAX_BYTES) -> bytes:
@@ -113,6 +103,7 @@ def fetch_bootstrap(destination: Path) -> dict:
                     source_group="wikimedia_unknown_patient_cohort",
                     source_url=info["descriptionurl"],
                     license=license_name,
+                    image_redistribution_allowed=True,
                     rights_basis="Public Wikimedia license recorded; research bootstrap only",
                     sha256=sha256,
                     photo_type="scalp",

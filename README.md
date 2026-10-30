@@ -99,6 +99,20 @@ Poor resolution, extreme exposure or very low contrast suppress the scores. Thes
 are simple checks, not validated image-quality, scalp or out-of-distribution detectors.
 Image-only models explicitly report `clinical_context_used_by_model: false`.
 
+## Multi-photo case analysis
+
+Use `xquantum analyze-case --model artifacts/bootstrap --image vertex.jpg temporal.jpg`
+or `POST /v1/analyze-case` with `images_base64` and optional `clinical` context.
+The case averages all views and reports per-view quality; any quality failure
+suppresses combined scores. See [case analysis](docs/CASE_ANALYSIS.md) for limits.
+
+## Restricted and non-free sources
+
+Authorized non-free datasets are supported with an explicit use scope, permission
+reference and redistribution flag. Training reports flag restricted-source models
+for release review. See [restricted data](docs/RESTRICTED_DATA.md) for fields and
+assessed providers. No restricted images have been added to the public bootstrap.
+
 ## Train with reviewed medical data
 
 See [data contract](docs/DATA_CONTRACT.md) for the JSONL format, units, labels,

@@ -90,3 +90,9 @@ replace manual duplicate review or source reconciliation. A `source_group` shoul
 represent related samples, not automatically an entire hospital; leave whole sites
 out separately for external validation. No image-level random-split helper is provided.
 
+
+## Source-use restrictions
+
+Samples also support `use_scope`, `permission_reference`, and
+`image_redistribution_allowed`. See [restricted data](RESTRICTED_DATA.md). Unknown
+licences need an explicit restricted-use category; they are not assumed open.
