@@ -33,8 +33,9 @@ run. The exclusion record is retained in the ingestion report.
 claim is supported.** Training loss is an optimization trace, not validation. There
 is no healthy control, other-condition class, external site or patient-held-out test.
 Reviewed research mode emits basic held-out metrics but those do not constitute
-clinical validation. Confidence intervals, calibration, subgroup performance and
-prospective study results remain future work.
+clinical validation. Patient-level global-metric bootstrap intervals are available for reviewed cohorts;
+see [evaluation methodology](EVALUATION.md) for assumptions and small-cohort guards.
+Calibration, subgroup performance and prospective study results remain future work.
 
 ## Failure modes
 

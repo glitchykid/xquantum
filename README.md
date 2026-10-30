@@ -24,6 +24,9 @@ or claimed: building that dataset is the next research milestone.
   images and clinical inputs are processed in memory and are not retained.
 - Reviewed research runs report held-out balanced accuracy, macro F1, log loss,
   class support, and confusion matrices. Bootstrap runs report **no test accuracy**.
+- Primary patient-level evaluation averages views per patient, with per-condition
+  sensitivity/specificity and seeded patient-bootstrap confidence intervals. See
+  [evaluation methodology](docs/EVALUATION.md).
 
 ## Installation
 

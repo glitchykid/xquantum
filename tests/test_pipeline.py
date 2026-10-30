@@ -133,6 +133,8 @@ def test_reviewed_training_evaluates_only_held_out_patients(dataset, tmp_path):
     report = train(path, tmp_path / "run", bootstrap=False, multimodal=True, epochs=5)
     assert report["training_samples"] == 8
     assert report["held_out_metrics"]["test"]["samples"] == 2
+    assert report["held_out_metrics"]["test"]["patients"] == 2
+    assert report["held_out_metrics"]["test"]["primary_analysis"] == "patient_level"
     result = ResearchModel.load(tmp_path / "run").analyze(
         (path.parent / rows[0]["image_path"]).read_bytes(), ClinicalRecord(age_years=35)
     )

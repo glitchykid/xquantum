@@ -1,3 +1,12 @@
+# Development update — patient-level evaluation
+
+Date: 2026-10-30. Published as a source update; no new release tag or clinical claim.
+
+Reviewed runs now include per-condition sensitivity/specificity, equal-patient
+view aggregation and deterministic 95% bootstrap intervals for global metrics.
+Missing classes and insufficient patients produce explicit warnings. Bootstrap
+weights and abstention behavior are unchanged. See `EVALUATION.md` for assumptions.
+
 # v0.1.0 — Runnable research baseline
 
 Date: 2026-10-30

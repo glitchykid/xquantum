@@ -9,9 +9,10 @@ from pathlib import Path
 
 import numpy as np
 from sklearn.linear_model import SGDClassifier
-from sklearn.metrics import balanced_accuracy_score, confusion_matrix, f1_score, log_loss
+from sklearn.metrics import log_loss
 
 from xquantum.dataset import audit_manifest, sample_path
+from xquantum.evaluation import evaluate
 from xquantum.imaging import FEATURE_VERSION, decode_image, image_features, quality_issues
 from xquantum.schemas import ClinicalRecord
 
@@ -115,21 +116,13 @@ def train(
         for split in ("validation", "test"):
             mask = splits == split
             probabilities = classifier.predict_proba(x[mask])
-            predictions = classes[np.argmax(probabilities, axis=1)]
-            metrics[split] = {
-                "samples": int(mask.sum()),
-                "class_support": dict(Counter(labels[mask])),
-                "balanced_accuracy": float(balanced_accuracy_score(labels[mask], predictions)),
-                "macro_f1": float(
-                    f1_score(
-                        labels[mask], predictions, labels=classes, average="macro", zero_division=0
-                    )
-                ),
-                "log_loss": float(log_loss(labels[mask], probabilities, labels=classes)),
-                "confusion_matrix": confusion_matrix(
-                    labels[mask], predictions, labels=classes
-                ).tolist(),
-            }
+            metrics[split] = evaluate(
+                labels[mask],
+                probabilities,
+                [row.patient_id for row in rows if row.split == split],
+                classes.tolist(),
+                seed=seed,
+            )
     output.mkdir(parents=True, exist_ok=True)
     weights_path = output / "weights.npz"
     np.savez_compressed(
