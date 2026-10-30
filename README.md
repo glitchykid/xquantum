@@ -134,6 +134,16 @@ clinical validation. Omit `--multimodal` for reviewed image-only experiments.
 The fixed epoch count does not tune on the test set. Do not repeatedly select models
 using test results. The audit cannot discover every re-upload or unknown patient.
 
+## Evaluate fixed weights on an independent cohort
+
+`xquantum evaluate --model /secure/frozen-model --manifest /secure/new/manifest.jsonl
+--development-manifest /secure/original/manifest.jsonl --output /secure/evaluation.json`
+requires a specialist-reviewed test-only cohort. It checks the original manifest
+against the training report and rejects patient/source/image overlap with all
+original records. It writes aggregate metrics without retraining or silently dropping
+poor images. See [independent evaluation](docs/INDEPENDENT_EVALUATION.md) for the
+complete command, requirements and limitations.
+
 ## Layout
 
 ```text

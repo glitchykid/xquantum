@@ -27,6 +27,12 @@ def parser() -> argparse.ArgumentParser:
             command.add_argument("--multimodal", action="store_true")
             command.add_argument("--epochs", type=int, default=50)
             command.add_argument("--seed", type=int, default=42)
+    evaluation = commands.add_parser("evaluate", help="Test fixed weights on a reviewed new cohort")
+    evaluation.add_argument("--model", type=Path, required=True)
+    evaluation.add_argument("--manifest", type=Path, required=True)
+    evaluation.add_argument("--development-manifest", type=Path, required=True)
+    evaluation.add_argument("--output", type=Path, required=True)
+    evaluation.add_argument("--seed", type=int, default=42)
     for name in ("analyze", "analyze-case"):
         analyze = commands.add_parser(name)
         analyze.add_argument("--model", type=Path, required=True)
@@ -88,6 +94,12 @@ def main(argv=None) -> int:
                     "clinically_validated",
                 )
             }
+        elif args.command == "evaluate":
+            from xquantum.external_evaluation import evaluate_saved_model
+
+            result = evaluate_saved_model(
+                args.model, args.manifest, args.development_manifest, args.output, seed=args.seed
+            )
         elif args.command in {"analyze", "analyze-case"}:
             clinical = (
                 ClinicalRecord.model_validate_json(args.clinical.read_text())

@@ -1,3 +1,13 @@
+# Development update — fixed-model independent evaluation
+
+Date: 2026-10-30. Source update; no clinical validation claim or release-policy change.
+
+Added `xquantum evaluate` for a new specialist-reviewed cohort without refitting.
+Requires the checksum-bound original development manifest and checks all original
+records for patient, source-group, exact-image, decoded-pixel and near-duplicate
+overlap. Invalid labels, split assignments or image quality stop the run before
+writing aggregate metrics. Model weights are unchanged. See `INDEPENDENT_EVALUATION.md`.
+
 # Development update — multi-photo cases and restricted data
 
 Date: 2026-10-30. Source update; release automation permissions are unchanged.

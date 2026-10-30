@@ -508,3 +508,142 @@ def test_case_cli_bounds_file_reads_before_loading_model(tmp_path, capsys):
         output.truncate(11 * 1024 * 1024)
     assert main(["analyze-case", "--model", str(tmp_path), "--image", str(file)]) == 1
     assert "10 MiB" in capsys.readouterr().err
+
+
+@pytest.fixture
+def evaluation_cohort(dataset):
+    path, rows = dataset
+    development = path.parent / "development.jsonl"
+    rewrite(development, rows[:8])
+    rows = rows[8:]
+    for row in rows:
+        row["split"] = "test"
+    rewrite(path, rows)
+    return path, development, rows
+
+
+def test_saved_model_evaluation_is_independent_and_preserves_weights(evaluation_cohort, tmp_path):
+    from xquantum.external_evaluation import evaluate_saved_model
+
+    cohort, development, _ = evaluation_cohort
+    out = tmp_path / "model"
+    train(development, out, bootstrap=True, epochs=2)
+    before = (out / "weights.npz").read_bytes()
+    report_path = tmp_path / "evaluation.json"
+    result = evaluate_saved_model(out, cohort, development, report_path)
+    assert result["metrics"]["patients"] == 4
+    assert result["metrics"]["primary_analysis"] == "patient_level"
+    assert result["metrics"]["patient_level"]["confidence_intervals"] is not None
+    assert result["clinically_validated"] is False
+    assert json.loads(report_path.read_text()) == result
+    assert (out / "weights.npz").read_bytes() == before
+    assert "p8" not in report_path.read_text()
+    with pytest.raises(ValueError, match="exists"):
+        evaluate_saved_model(out, cohort, development, report_path)
+
+
+@pytest.mark.parametrize("overlap", ["patient_id", "source_group", "image"])
+def test_saved_model_evaluation_rejects_development_overlap(evaluation_cohort, tmp_path, overlap):
+    from xquantum.external_evaluation import evaluate_saved_model
+
+    cohort, development, rows = evaluation_cohort
+    out = tmp_path / "model"
+    train(development, out, bootstrap=True, epochs=2)
+    original = json.loads(development.read_text().splitlines()[0])
+    if overlap == "image":
+        rows[0]["image_path"] = original["image_path"]
+        rows[0]["sha256"] = original["sha256"]
+    else:
+        rows[0][overlap] = original[overlap]
+    rewrite(cohort, rows)
+    with pytest.raises(ValueError, match="overlap|duplicate"):
+        evaluate_saved_model(out, cohort, development, tmp_path / "evaluation.json")
+    assert not (tmp_path / "evaluation.json").exists()
+
+
+@pytest.mark.parametrize("invalid", ["reference", "split", "class", "quality", "review"])
+def test_saved_model_evaluation_rejects_unusable_cohorts(evaluation_cohort, tmp_path, invalid):
+    from xquantum.external_evaluation import evaluate_saved_model
+
+    cohort, development, rows = evaluation_cohort
+    out = tmp_path / "model"
+    train(development, out, bootstrap=True, epochs=2)
+    if invalid == "reference":
+        development.write_text(development.read_text() + "\n")
+    elif invalid == "split":
+        rows[0]["split"] = "train"
+    elif invalid == "class":
+        rows[0]["label"] = "unaffected"
+    elif invalid == "review":
+        rows[0]["label_status"] = "source_only"
+    else:
+        file = cohort.parent / rows[0]["image_path"]
+        Image.new("RGB", (160, 192), "white").save(file)
+        rows[0]["sha256"] = hashlib.sha256(file.read_bytes()).hexdigest()
+    rewrite(cohort, rows)
+    with pytest.raises(ValueError):
+        evaluate_saved_model(out, cohort, development, tmp_path / "evaluation.json")
+
+
+def test_saved_model_evaluation_cli(evaluation_cohort, tmp_path, capsys):
+    from xquantum.cli import main
+
+    cohort, development, _ = evaluation_cohort
+    out = tmp_path / "model"
+    train(development, out, bootstrap=True, epochs=2)
+    assert (
+        main(
+            [
+                "evaluate",
+                "--model",
+                str(out),
+                "--manifest",
+                str(cohort),
+                "--development-manifest",
+                str(development),
+                "--output",
+                str(tmp_path / "evaluation.json"),
+            ]
+        )
+        == 0
+    )
+    assert json.loads(capsys.readouterr().out)["metrics"]["patients"] == 4
+
+
+@pytest.mark.parametrize("change_pixel", [False, True])
+def test_saved_model_evaluation_detects_reencoded_and_near_duplicate_images(
+    evaluation_cohort, tmp_path, change_pixel
+):
+    from xquantum.external_evaluation import evaluate_saved_model
+
+    cohort, development, rows = evaluation_cohort
+    out = tmp_path / "model"
+    train(development, out, bootstrap=True, epochs=2)
+    original = json.loads(development.read_text().splitlines()[0])
+    image = Image.open(cohort.parent / original["image_path"]).copy()
+    if change_pixel:
+        image.putpixel((0, 0), (255, 255, 255))
+    file = cohort.parent / rows[0]["image_path"]
+    image.save(file, optimize=True)
+    rows[0]["sha256"] = hashlib.sha256(file.read_bytes()).hexdigest()
+    assert rows[0]["sha256"] != original["sha256"]
+    rewrite(cohort, rows)
+    with pytest.raises(ValueError, match="duplicate|overlap"):
+        evaluate_saved_model(out, cohort, development, tmp_path / "evaluation.json")
+
+
+def test_saved_model_evaluation_warns_when_original_patient_identity_is_unknown(
+    evaluation_cohort, tmp_path
+):
+    from xquantum.external_evaluation import evaluate_saved_model
+
+    cohort, development, _ = evaluation_cohort
+    records = [json.loads(line) for line in development.read_text().splitlines()]
+    for row in records:
+        row["patient_id"] = None
+    rewrite(development, records)
+    out = tmp_path / "model"
+    train(development, out, bootstrap=True, epochs=2)
+    report = evaluate_saved_model(out, cohort, development, tmp_path / "evaluation.json")
+    assert any("identities are incomplete" in warning for warning in report["warnings"])
+    assert report["clinically_validated"] is False
